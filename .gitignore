@@ -24,9 +24,11 @@ gcs_keys.json
 # Secrets and configs
 .env
 .env.*
+!/.env.example
 secrets.yaml
 /config/*
 !/config/.gitkeep
+!/config/gcs_keys.json.example
 config.yaml
 config/*.yaml
 config/*.json
