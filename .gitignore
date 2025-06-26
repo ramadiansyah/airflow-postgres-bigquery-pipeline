@@ -1,5 +1,6 @@
 # Project-specific: temporary and documentation folders
-tmp/
+tmp/*
+!/tmp/.gitkeep
 data/
 output/
 docs/
@@ -8,7 +9,8 @@ docs/
 # Airflow files
 airflow.db
 airflow.cfg
-airflow_logs/
+/airflow_logs/*
+!/airflow_logs/.gitkeep
 logs/
 unittest.cfg
 *.pid
@@ -23,6 +25,8 @@ gcs_keys.json
 .env
 .env.*
 secrets.yaml
+/config/*
+!/config/.gitkeep
 config.yaml
 config/*.yaml
 config/*.json
