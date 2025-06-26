@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  airflow-db:
+    image: postgres:13
+    container_name: airflow_postgres
+    environment:
+      POSTGRES_DB: ${AIRFLOW_POSTGRES_DB}
+      POSTGRES_USER: ${AIRFLOW_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"   # ← expose container port 5432 to host port 5433
+    volumes:
+      - airflow_pgdata:/var/lib/postgresql/data
+    networks:
+      - airflow_net
+
+  retail-db:
+    image: postgres:13
+    container_name: retail_postgres
+    environment:
+      POSTGRES_DB: ${RETAIL_POSTGRES_DB}
+      POSTGRES_USER: ${RETAIL_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${RETAIL_POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - retail_pgdata:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - airflow_net
+
+  airflow:
+    image: apache/airflow:2.9.1-python3.10
+    container_name: airflow
+    depends_on:
+      - airflow-db
+      - retail-db
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_POSTGRES_USER}:${AIRFLOW_POSTGRES_PASSWORD}@airflow-db:5432/${AIRFLOW_POSTGRES_DB}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      PYTHONPATH: /opt/airflow 
+    volumes:
+      - ./airflow_logs:/opt/airflow/logs
+      - ./config:/opt/airflow/config
+      - ./dags:/opt/airflow/dags
+      - ./utils:/opt/airflow/utils
+      - ./services:/opt/airflow/services
+      - ./tmp:/opt/airflow/tmp
+      - ./requirements.txt:/requirements.txt
+      - ./.env:/opt/airflow/.env
+      
+    ports:
+      - "8080:8080"
+    command: >
+      bash -c "
+        pip install --no-cache-dir -r /requirements.txt &&
+        airflow scheduler & airflow webserver
+      "
+    networks:
+      - airflow_net
+
+networks:
+  airflow_net:
+
+volumes:
+  airflow_pgdata: {}
+  retail_pgdata: {}
+  airflow_logs: {}
