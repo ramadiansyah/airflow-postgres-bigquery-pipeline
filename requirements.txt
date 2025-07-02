@@ -1,7 +1,6 @@
 faker
 psycopg2-binary
 pytz
-logging
 sqlalchemy
 pandas
 python-dotenv
